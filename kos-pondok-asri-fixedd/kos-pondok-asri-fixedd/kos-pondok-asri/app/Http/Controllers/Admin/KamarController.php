@@ -9,6 +9,7 @@ use App\Models\Kamar;
 use App\Support\Media;
 use App\Support\Tampil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -19,7 +20,8 @@ class KamarController extends Controller
         $query = Kamar::with('fasilitas');
 
         if ($request->filled('search')) {
-            $query->where('nomor_kamar', 'like', '%' . $request->search . '%');
+            $like = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where('nomor_kamar', $like, '%' . $request->search . '%');
         }
 
         if ($request->filled('status') && $request->status !== 'all') {

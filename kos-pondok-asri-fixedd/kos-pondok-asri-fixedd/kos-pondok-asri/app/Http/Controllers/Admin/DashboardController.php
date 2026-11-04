@@ -35,9 +35,12 @@ class DashboardController extends Controller
         ];
 
         // ---- Grafik 1: pemasukan per bulan (tahun berjalan) ----
-        $bulanExpr = DB::connection()->getDriverName() === 'sqlite'
-            ? "CAST(strftime('%m', tanggal_bayar) AS INTEGER)"
-            : 'MONTH(tanggal_bayar)';
+        $driver = DB::connection()->getDriverName();
+        $bulanExpr = match ($driver) {
+            'sqlite' => "CAST(strftime('%m', tanggal_bayar) AS INTEGER)",
+            'pgsql'  => 'CAST(EXTRACT(MONTH FROM tanggal_bayar) AS INTEGER)',
+            default  => 'MONTH(tanggal_bayar)',
+        };
 
         $perBulan = (clone $lunas)->whereYear('tanggal_bayar', $tahun)
             ->select(DB::raw($bulanExpr . ' as bulan'), DB::raw('SUM(jumlah_bayar) as total'))

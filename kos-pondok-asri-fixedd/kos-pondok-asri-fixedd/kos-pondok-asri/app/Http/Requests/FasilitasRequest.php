@@ -16,7 +16,8 @@ class FasilitasRequest extends FormRequest
     {
         $unique = Rule::unique('fasilitas', 'nama_fasilitas');
         if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
-            $unique->ignore(collect($this->route()->parameters())->first(), 'id_fasilitas');
+            $id = $this->route('fasilitas') ?? collect($this->route()?->parameters() ?? [])->first() ?? $this->id;
+            $unique->ignore($id, 'id_fasilitas');
         }
 
         return [

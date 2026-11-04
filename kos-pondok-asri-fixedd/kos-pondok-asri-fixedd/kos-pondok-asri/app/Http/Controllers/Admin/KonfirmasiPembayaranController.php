@@ -10,6 +10,7 @@ use App\Services\BookingService;
 use App\Support\PesanKonfirmasi;
 use App\Support\Tampil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -30,10 +31,11 @@ class KonfirmasiPembayaranController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function ($outer) use ($search) {
-                $outer->whereHas('sewaKamar.penghuni', fn ($q) => $q->where('nama', 'like', '%' . $search . '%'))
-                    ->orWhereHas('sewaKamar.kamar', fn ($q) => $q->where('nomor_kamar', 'like', '%' . $search . '%'))
-                    ->orWhereHas('sewaKamar.booking', fn ($q) => $q->where('nama_pendaftar', 'like', '%' . $search . '%'));
+            $like = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($outer) use ($search, $like) {
+                $outer->whereHas('sewaKamar.penghuni', fn ($q) => $q->where('nama', $like, '%' . $search . '%'))
+                    ->orWhereHas('sewaKamar.kamar', fn ($q) => $q->where('nomor_kamar', $like, '%' . $search . '%'))
+                    ->orWhereHas('sewaKamar.booking', fn ($q) => $q->where('nama_pendaftar', $like, '%' . $search . '%'));
             });
         }
 

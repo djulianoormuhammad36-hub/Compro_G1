@@ -9,6 +9,8 @@ use App\Models\KosInfo;
 use App\Support\Periode;
 use App\Support\Tampil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class PublicController extends Controller
@@ -42,7 +44,8 @@ class PublicController extends Controller
         $query = Kamar::with('fasilitas');
 
         if ($request->filled('search')) {
-            $query->where('nomor_kamar', 'like', '%' . $request->search . '%');
+            $like = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where('nomor_kamar', $like, '%' . $request->search . '%');
         }
 
         if ($request->filled('status') && $request->status !== 'all') {
@@ -73,7 +76,7 @@ class PublicController extends Controller
         $kamar->load('fasilitas');
 
         // "Ubah Data" dari halaman review mengisi ulang form dengan data booking sebelumnya.
-        $prefill = $request->filled('booking')
+        $prefill = ($request->filled('booking') && Str::isUuid((string) $request->booking))
             ? Booking::where('token', $request->booking)
                 ->where('id_kamar', $kamar->id_kamar)
                 ->where('status_booking', Booking::MENUNGGU)

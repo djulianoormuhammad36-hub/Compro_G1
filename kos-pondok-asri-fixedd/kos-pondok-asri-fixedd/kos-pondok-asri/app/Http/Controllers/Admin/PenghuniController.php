@@ -9,6 +9,7 @@ use App\Models\Penghuni;
 use App\Services\PenghuniService;
 use App\Support\Tampil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class PenghuniController extends Controller
@@ -23,8 +24,9 @@ class PenghuniController extends Controller
 
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(function ($q) use ($s) {
-                $q->where('nama', 'like', "%{$s}%")->orWhere('kontak', 'like', "%{$s}%");
+            $like = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($s, $like) {
+                $q->where('nama', $like, "%{$s}%")->orWhere('kontak', $like, "%{$s}%");
             });
         }
 

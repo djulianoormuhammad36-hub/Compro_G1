@@ -11,6 +11,7 @@ use App\Models\SewaKamar;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -39,7 +40,7 @@ class BookingService
         return DB::transaction(function () use ($kamar, $data, $token) {
             $kamar = Kamar::lockForUpdate()->findOrFail($kamar->id_kamar);
 
-            if ($token) {
+            if ($token && Str::isUuid($token)) {
                 $ada = Booking::where('token', $token)
                     ->where('id_kamar', $kamar->id_kamar)
                     ->where('status_booking', Booking::MENUNGGU)
